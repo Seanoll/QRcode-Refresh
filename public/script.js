@@ -5,7 +5,7 @@ const statusEl = document.getElementById('status');
 
 let refreshIntervalMs = 10000;
 let nextRotationAt = Date.now() + refreshIntervalMs;
-let lastRotationId = -1;
+let lastRotationId = null;
 let isRefreshing = false;
 
 function setRefreshing(on) {
@@ -36,7 +36,9 @@ async function pollStatus() {
     const d = await r.json();
     refreshIntervalMs = d.refreshIntervalMs;
     nextRotationAt = Date.now() + d.msUntilNextRotation;
-    if (d.rotationId !== lastRotationId) {
+    if (lastRotationId === null) {
+      lastRotationId = d.rotationId;
+    } else if (d.rotationId !== lastRotationId) {
       lastRotationId = d.rotationId;
       refreshQr();
     }
@@ -52,7 +54,6 @@ function tick() {
 }
 
 (async () => {
-  setRefreshing(true);
   await pollStatus();
   refreshQr();
   setInterval(pollStatus, 500);
